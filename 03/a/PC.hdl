@@ -1,0 +1,54 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/a/PC.hdl
+
+/**
+ * A 16-bit counter with load and reset control bits.
+ * if      (reset[t] == 1) out[t+1] = 0
+ * else if (load[t] == 1)  out[t+1] = in[t]
+ * else if (inc[t] == 1)   out[t+1] = out[t] + 1  (integer addition)
+ * else                    out[t+1] = out[t]
+ */
+
+CHIP PC {
+    IN in[16],load,inc,reset;
+    OUT out[16];
+
+    PARTS:
+    // Put your code here:
+
+    Not(in=reset, out=nReset);
+    Not(in=load, out=nLoad);
+    Not(in=inc, out=nInc);
+
+    Or(a=reset, b=load, out=o1);
+    Or(a=o1, b=inc, out=regiLoad);
+
+    And(a=nReset, b=load, out=zx1);
+    Or(a=reset, b=zx1, out=zx);
+
+    And(a=nReset, b=load, out=nx1);
+    And(a=nReset, b=nLoad, out=nx2);
+    And(a=nx2, b=inc, out=nx3);
+    Or(a=nx1, b=nx3, out=nx);
+
+    And(a=nReset, b=nLoad, out=zy1);
+    And(a=zy1, b=inc, out=zy2);
+    Or(a=zy2, b=reset, out=zy);
+
+    And(a=nReset, b=nLoad, out=ny1);
+    And(a=ny1, b=inc, out=ny);
+
+    And(a=nReset, b=nLoad, out=f1);
+    And(a=f1, b=inc, out=f2);
+    Or(a=f2, b=reset, out=f);
+
+    And(a=nReset, b=nLoad, out=no1);
+    And(a=no1, b=inc, out=no);
+
+
+    ALU(x=fb, y=in[0..15], zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no, out=pin, zr=zr, ng=ng);
+    Register(in=pin, load=regiLoad, out=out[0..15], out=fb);
+
+}
